@@ -1,9 +1,11 @@
 # СМД API — Средство моделирования данных (вариант № 23)
 
-REST-интерфейс инструмента сравнения схем БД и генерации миграционных скриптов.
-ЛР № 3 по дисциплине «Технологии разработки программных средств» (МГТУ «СТАНКИН»).
+REST-интерфейс инструмента сравнения схем БД и генерации миграционных скриптов,
+тестирование (pytest, testcontainers) и мониторинг (Prometheus, Grafana).
+ЛР № 4 по дисциплине «Технологии разработки программных средств» (МГТУ «СТАНКИН»).
 
-Стек: Python 3.10+, FastAPI, SQLAlchemy 2.x, PostgreSQL 16, Docker, GitHub Actions.
+Стек: Python 3.12, FastAPI, SQLAlchemy 2.x, PostgreSQL 16, Docker, pytest,
+testcontainers, prometheus-client, Prometheus, Grafana, GitHub Actions.
 
 ## Запуск
 
@@ -11,6 +13,9 @@ REST-интерфейс инструмента сравнения схем БД 
 docker compose up --build
 # Swagger UI: http://localhost:8000/docs
 # Healthcheck: http://localhost:8000/api/health
+# Метрики: http://localhost:8000/metrics
+# Prometheus: http://localhost:9090
+# Grafana: http://localhost:3000 (admin/admin, дашборд «СМД — мониторинг»)
 ```
 
 Без Docker (нужен PostgreSQL, переменная `DATABASE_URL`):
@@ -22,12 +27,26 @@ uvicorn app.main:app --reload
 
 ## Тесты
 
+10 модульных тестов (успешные, ошибочные и граничные сценарии) и 3 интеграционных
+теста с testcontainers (реальный PostgreSQL 16, требуется Docker):
+
 ```bash
 pip install -r requirements-dev.txt
-pytest
+pytest                        # весь набор
+pytest -m integration         # только интеграционные (testcontainers)
+pytest -m "not integration"   # только модульные
 ```
 
-## Конечные точки (12)
+## Мониторинг
+
+Сбор метрик — prometheus-client; экспорт — маршрут `/metrics` (скрейпинг каждые 5 с).
+Бизнес-метрики: `smd_projects_total`, `smd_comparisons_total`,
+`smd_comparison_duration_seconds`, `smd_export_duration_seconds`;
+HTTP-метрики: `smd_http_requests_total`, `smd_http_request_duration_seconds`.
+Панель Grafana (4 графика): активность пользователей, время отклика (p95),
+топ ошибок, время сравнения схем и экспорта миграций.
+
+## Конечные точки (13)
 
 | № | Метод и путь | Назначение |
 |---|---|---|
@@ -43,4 +62,4 @@ pytest
 | 10 | `POST /api/migrations` | сгенерировать скрипт миграции по различиям |
 | 11 | `GET /api/migrations/{id}` | получить миграцию со скриптом |
 | 12 | `GET /api/migrations/{id}/export` | экспорт SQL-скрипта (файл) |
-
+| 13 | `GET /metrics` | экспорт метрик Prometheus (ЛР № 4) |

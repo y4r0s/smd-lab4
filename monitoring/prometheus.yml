@@ -1,0 +1,10 @@
+# Конфигурация Prometheus (ЛР № 4): сбор метрик СМД каждые 5 секунд
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  - job_name: smd-api
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["app:8000"]

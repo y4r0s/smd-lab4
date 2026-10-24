@@ -1,0 +1,13 @@
+# Провижининг дашбордов Grafana из файлов (панель СМД)
+apiVersion: 1
+
+providers:
+  - name: smd-dashboards
+    orgId: 1
+    folder: СМД
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 10
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
