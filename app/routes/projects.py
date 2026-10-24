@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
+from ..metrics import PROJECTS_TOTAL
 
 router = APIRouter(prefix="/projects", tags=["projects"])
 
@@ -26,6 +27,7 @@ def create_project(payload: schemas.ProjectCreate, db: Session = Depends(get_db)
             detail=f"проект с именем {payload.name!r} уже существует",
         ) from exc
     db.refresh(project)
+    PROJECTS_TOTAL.inc()
     return project
 
 

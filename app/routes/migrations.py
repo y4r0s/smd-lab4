@@ -3,12 +3,15 @@
 Инвариант агрегата MigrationScript (ЛР № 2): после is_applied = True
 скрипт неизменяем — в API нет маршрута изменения скрипта.
 """
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import PlainTextResponse
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
+from ..metrics import EXPORT_DURATION
 from ..services.diff_engine import DiffItem
 from ..services.migration_generator import generate_sql
 
@@ -65,12 +68,14 @@ def get_migration(migration_id: int, db: Session = Depends(get_db)) -> models.Mi
 @router.get("/{migration_id}/export", response_class=PlainTextResponse)
 def export_script(migration_id: int, db: Session = Depends(get_db)) -> PlainTextResponse:
     """Экспорт SQL-скрипта миграции (методы preview()/export() класса MigrationScript, ЛР № 2)."""
+    started = time.perf_counter()
     migration = db.get(models.Migration, migration_id)
     if migration is None or migration.script is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="скрипт миграции не найден"
         )
     filename = f"migration_{migration.script.version}.sql"
+    EXPORT_DURATION.observe(time.perf_counter() - started)
     return PlainTextResponse(
         content=migration.script.sql,
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},

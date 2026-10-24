@@ -4,11 +4,14 @@
 разбор DDL (DdlParser) -> сравнение (DiffEngine, «Стратегия»)
 -> сохранение различий Diff[] в БД.
 """
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from .. import models, schemas
 from ..database import get_db
+from ..metrics import COMPARISON_DURATION, COMPARISONS_TOTAL
 from ..services.ddl_parser import DdlParseError, ParsedTable, parse_ddl
 from ..services.diff_engine import get_strategy
 
@@ -50,6 +53,7 @@ def create_comparison(
     project = db.get(models.Project, payload.project_id)
     if project is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="проект не найден")
+    started = time.perf_counter()
     try:
         source_tables = parse_ddl(payload.source_ddl)
         target_tables = parse_ddl(payload.target_ddl)
@@ -84,8 +88,10 @@ def create_comparison(
                 details=item.details,
             )
         )
+    COMPARISON_DURATION.observe(time.perf_counter() - started)
     db.commit()
     db.refresh(comparison)
+    COMPARISONS_TOTAL.inc()
     return comparison
 
 
