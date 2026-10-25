@@ -14,8 +14,8 @@ from .database import Base, engine, get_db
 from .metrics import HTTP_REQUESTS, HTTP_REQUEST_DURATION
 from .routes import comparisons, migrations, projects
 
-# служебные маршруты, не учитываемые в HTTP-метриках (healthcheck compose и скрейпинг)
-_SKIPPED_PATHS = {"/metrics", "/api/health"}
+# служебные маршруты, не учитываемые в HTTP-метриках (healthcheck compose, скрейпинг, favicon)
+_SKIPPED_PATHS = {"/metrics", "/api/health", "/favicon.ico"}
 
 
 async def metrics_middleware(request: Request, call_next):
