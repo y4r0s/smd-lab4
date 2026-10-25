@@ -27,7 +27,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (endpoint) (rate(smd_http_requests_total[1m]))",
+          "expr": "sum by (endpoint) (rate(smd_http_requests_total{endpoint!~\"/docs|/openapi.json\"}[1m]))",
           "legendFormat": "{{endpoint}}"
         }
       ]
@@ -49,7 +49,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(smd_http_request_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, endpoint) (rate(smd_http_request_duration_seconds_bucket{endpoint!~\"/docs|/openapi.json\"}[5m])))",
           "legendFormat": "p95 {{endpoint}}"
         }
       ]
