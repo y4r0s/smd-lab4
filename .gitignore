@@ -11,3 +11,4 @@ pytest.xml
 *.sqlite
 .env
 .DS_Store
+scripts/
